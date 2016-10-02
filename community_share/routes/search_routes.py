@@ -20,7 +20,7 @@ def register_search_routes(app):
         response = jsonify(response_data)
         return response
 
-    @app.route(base_routes.API_PAGINATION_FORMAT.format('search') + '/results', methods=['GET'])
+    @app.route('/api/search/<id>/<page>/results', methods=['GET'])
     def get_search_results(id, page):
         page = int(page)
         requester = get_requesting_user()
