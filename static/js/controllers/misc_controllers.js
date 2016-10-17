@@ -74,11 +74,10 @@ module.controller(
 		var statisticsPromise = getStatistics();
 		$scope.statistics = [];
 		statisticsPromise.then( function( statistics ) {
-			for ( var dateString in statistics ) {
-				var date = new Date( dateString );
-				statistics[ dateString ].date = date;
+			Object.keys( statistics ).forEach( dateString => {
+				statistics[ dateString ].date = new Date( dateString );
 				$scope.statistics.push( statistics[ dateString ] );
-			}
+			} );
 			var comp = function( a, b ) {
 				if ( a.date > b.date ) {
 					return 1;

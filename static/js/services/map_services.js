@@ -10,7 +10,7 @@ module.factory(
 	'locationFromAddress',
 	[ '$q', function( $q ) {
 		var geocoder = new google.maps.Geocoder();
-		var locationFromAddress = function( address ) {
+		return function locationFromAddress( address ) {
 			var deferred = $q.defer();
 			geocoder.geocode( { 'address': address }, function( results, status ) {
 				if ( status === google.maps.GeocoderStatus.OK ) {
@@ -21,7 +21,6 @@ module.factory(
 			} );
 			return deferred.promise;
 		};
-		return locationFromAddress;
 	} ] );
 
 module.factory(

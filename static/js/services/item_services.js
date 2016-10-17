@@ -12,7 +12,7 @@ var module = angular.module(
 module.factory(
 	'itemFactory',
 	[ '$q', '$http', 'SessionBase', function( $q, $http, SessionBase ) {
-		var itemFactory = function( resourceName ) {
+		return function itemFactory( resourceName ) {
 			var Item = function( itemData ) {
 				this.updateFromData( itemData );
 				if ( this.initialize ) {
@@ -22,13 +22,10 @@ module.factory(
 			Item.cache = {};
 			Item.searchCache = {};
 			Item.prototype.toData = function() {
-				var data = JSON.parse( JSON.stringify( this ) );
-				return data;
+				return JSON.parse( JSON.stringify( this ) );
 			};
 			Item.prototype.clone = function() {
-				var data = this.toData();
-				var item = new Item( data );
-				return item;
+				return new Item( this.toData() );
 			};
 			Item.makeUrl = function( id ) {
 				var url = '/api/' + resourceName;
@@ -104,14 +101,10 @@ module.factory(
 				return deferred.promise;
 			};
 			Item.prototype._baseUpdateFromData = function( itemData ) {
-				for ( var key in itemData ) {
-					this[ key ] = itemData[ key ];
-				}
+				Object.assign( this, itemData );
 			};
 			Item.prototype.updateFromData = function( itemData ) {
-				for ( var key in itemData ) {
-					this[ key ] = itemData[ key ];
-				}
+				Object.assign ( this, itemData );
 			};
 			Item.prototype.save = function() {
 				var _this = this;
@@ -159,13 +152,13 @@ module.factory(
 						_this.active = false;
 						Item.cache[ _this.id ] = undefined;
 						// Remove the items from the cached searches.
-						for ( var searchHash in Item.searchCache ) {
+						Object.keys( Item.searchCache ).forEach( searchHash => {
 							var items = Item.searchCache[ searchHash ];
 							var index = items.indexOf( _this );
 							if ( index >= 0 ) {
 								items.splice( index, 1 );
 							}
-						}
+						} );
 						deferred.resolve();
 					},
 					function( response ) {
@@ -181,5 +174,4 @@ module.factory(
 
 			return Item;
 		};
-		return itemFactory;
 	} ] );

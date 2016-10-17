@@ -31,8 +31,7 @@ module.factory(
 					},
 				},
 			};
-			var m = $modal.open( opts );
-			return m;
+			return $modal.open( opts );
 		};
 	} ] );
 

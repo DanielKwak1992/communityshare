@@ -113,19 +113,13 @@ var commonSignupLogic = function( $scope, user, search, Messages, $location, $q,
 	$scope.enoughLabelsSelected = function() {
 		var cpl = user.community_partner_profile_search.labels;
 		var el = user.educator_profile_search.labels;
-		var enoughSelected = ( ( cpl.length > 0 ) || ( el.length > 0 ) );
-		return enoughSelected;
+		return cpl.length > 0 || el.length > 0;
 	};
 	$scope.submit = function() {
-		if ( $scope.enoughLabelsSelected() && ( $scope.institutionMethods.isValid() )
-			&& ( ( $scope.agreeToFollowHomePolicies.value ) || ( ! isEducator ) ) ) {
+		if ( $scope.enoughLabelsSelected() && $scope.institutionMethods.isValid()
+			&& $scope.agreeToFollowHomePolicies.value ) {
 			$scope.institutionMethods.form.submitted = true;
 			$scope.submitted = true;
-			var isEducator = false;
-			if ( ( user.educator_profile_search ) && ( user.educator_profile_search.labels ) &&
-				( user.educator_profile_search.labels.length > 0 ) ) {
-				isEducator = true;
-			}
 			// Save changes made to user.
 			var userPromise = user.save();
 			var allPromises = [ userPromise ];

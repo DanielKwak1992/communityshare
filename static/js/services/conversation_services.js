@@ -42,9 +42,7 @@ module.factory(
 		};
 		Conversation.prototype.updateFromData = function( data ) {
 			var _this = this;
-			for ( var key in data ) {
-				this[ key ] = data[ key ];
-			}
+			Object.assign( this, data );
 			if ( this.userA ) {
 				this.userA = UserBase.make( this.userA );
 			}
@@ -136,8 +134,7 @@ module.factory(
 				user_id: user_id,
 				with_unviewed_messages: true,
 			};
-			var conversationsPromise = Conversation.get_many( data );
-			return conversationsPromise;
+			return Conversation.get_many( data );
 		};
 
 		return Conversation;
@@ -157,9 +154,7 @@ module.factory(
 			return d;
 		};
 		Message.prototype.updateFromData = function( data ) {
-			for ( var key in data ) {
-				this[ key ] = data[ key ];
-			}
+			Object.assign( this, data );
 			if ( this.date_created ) {
 				this.date_created = new Date( this.date_created );
 			} else {

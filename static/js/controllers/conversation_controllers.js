@@ -15,8 +15,7 @@ var combineMessages = function( baseMessage, specificMessage ) {
 	if ( specificMessage ) {
 		msg = ': ' + specificMessage;
 	}
-	var message = baseMessage + msg;
-	return message;
+	return baseMessage + msg;
 };
 
 module.controller(
@@ -65,17 +64,15 @@ module.controller(
 		$scope.conversation = conversation;
 		$scope.newMessage = undefined;
 		var makeNewMessage = function() {
-			var newMessage = new Message( {
+			return new Message( {
 				conversation_id: conversation.id,
 				sender_user_id: Session.activeUser.id,
 				content: '',
 			} );
-			return newMessage;
 		};
 		var showErrorMessage = function( message ) {
 			var baseMessage = 'Failed to load conversation';
-			var msg = combineMessages( baseMessage, message );
-			$scope.errorMessage = msg;
+			$scope.errorMessage = combineMessages( baseMessage, message );
 		};
 		var refreshConversation = function() {
 			var refreshedConversationPromise = Conversation.get( conversation.id, true );
@@ -87,8 +84,7 @@ module.controller(
 				},
 				function( message ) {
 					var baseMessage = 'Failed to load conversation';
-					var msg = combineMessages( baseMessage, message );
-					$scope.conversationErrorMessage = msg;
+					$scope.conversationErrorMessage = combineMessages( baseMessage, message );
 				}
 			);
 		};
@@ -103,8 +99,7 @@ module.controller(
 				},
 				function( message ) {
 					var baseMessage = 'Failed to load shares';
-					var msg = combineMessages( baseMessage, message );
-					$scope.sharesErrorMessage = msg;
+					$scope.sharesErrorMessage = combineMessages( baseMessage, message );
 				}
 			);
 		};
@@ -177,8 +172,7 @@ module.controller(
 							},
 							function( message ) {
 								var baseMessage = 'Failed to cancel share';
-								var msg = combineMessages( baseMessage, message );
-								$scope.errorMessage = msg;
+								$scope.errorMessage = combineMessages( baseMessage, message );
 							} );
 					}
 				} );

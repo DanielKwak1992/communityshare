@@ -9,7 +9,7 @@ var module = angular.module(
 module.factory(
 	'getStatistics',
 	[ '$q', '$http', function( $q, $http ) {
-		var getStatistics = function() {
+		return function getStatistics() {
 			var url = '/api/statistics';
 			var statisticsPromise = $http( {
 				method: 'GET',
@@ -29,6 +29,5 @@ module.factory(
 				} );
 			return deferred.promise;
 		};
-		return getStatistics;
 	} ] );
 

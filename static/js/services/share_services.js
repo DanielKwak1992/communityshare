@@ -41,12 +41,6 @@ module.factory(
 					this.otherUser = this.educator;
 				}
 			}
-			this.canApprove = false;
-			if ( ( iAmEducator ) && ( ! this.educator_approved ) && ( this.community_partner_approved ) ) {
-				this.canApprove = true;
-			} else if ( ( iAmCommunityPartner ) && ( ! this.community_partner_approved ) && ( this.educator_approved ) ) {
-				this.canApprove = true;
-			}
 			this.approved = ( this.educator_approved && this.community_partner_approved );
 		};
 		Share.prototype.hasActiveEvent = function() {
@@ -99,8 +93,7 @@ module.factory(
 module.factory(
 	'EvntBase',
 	[ 'itemFactory', function( itemFactory ) {
-		var Evnt = itemFactory( 'event' );
-		return Evnt;
+		return itemFactory( 'event' );
 	} ] );
 
 var splitDateTime = function( datetime ) {
@@ -110,21 +103,20 @@ var splitDateTime = function( datetime ) {
 	var time = new Date( 1900, 0, 1,
 		datetime.getHours(),
 		datetime.getMinutes() );
-	var combined = {
+	return {
 		date: date,
 		time: time,
 	};
-	return combined;
 };
 
 var combineDateTime = function( date, time ) {
-	var combined = new Date(
+	return new Date(
 		date.getFullYear(),
 		date.getMonth(),
 		date.getDate(),
 		time.getHours(),
-		time.getMinutes() );
-	return combined;
+		time.getMinutes()
+	);
 };
 
 module.factory(

@@ -9,7 +9,7 @@ var module = angular.module( 'communityshare.directives.labels', [
 module.factory(
 	'makeBaseLabels',
 	function() {
-		var makeBaseLabels = function() {
+		return function makeBaseLabels() {
 			var labels = {
 				// Grade levels
 				gradeLevels: {
@@ -81,8 +81,6 @@ module.factory(
 				'all': allLabels,
 			};
 		};
-
-		return makeBaseLabels;
 	} );
 
 module.factory(
@@ -90,19 +88,19 @@ module.factory(
 	[ 'makeBaseLabels', function( makeBaseLabels ) {
 		var labellists = makeBaseLabels().all;
 		var labelMapping = {};
-		for ( var key in labellists ) {
+		Object.keys( labellists ).forEach( key => {
 			for ( var i = 0; i < labellists[ key ].length; i ++ ) {
 				var label = labellists[ key ][ i ];
 				labelMapping[ label ] = key;
 			}
-		}
+		} );
 		return labelMapping;
 	} ] );
 
 module.factory(
 	'orderLabels',
 	[ 'labelMapping', function( labelMapping ) {
-		var orderLabels = function( labels ) {
+		return function orderLabels( labels ) {
 			var gradeLevels = [];
 			var subjectAreas = [];
 			var engagementLevels = [];
@@ -116,10 +114,8 @@ module.factory(
 					subjectAreas.push( label );
 				}
 			}
-			var combinedLabels = gradeLevels.concat( subjectAreas ).concat( engagementLevels );
-			return combinedLabels;
+			return gradeLevels.concat( subjectAreas ).concat( engagementLevels );
 		};
-		return orderLabels;
 	} ] );
 
 module.factory(

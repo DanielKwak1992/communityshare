@@ -9,8 +9,7 @@ var module = angular.module(
 module.factory(
 	'Answer',
 	[ 'itemFactory', function( itemFactory ) {
-		var Answer = itemFactory( 'answer' );
-		return Answer;
+		return itemFactory( 'answer' );
 	} ] );
 
 module.factory(

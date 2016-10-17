@@ -12,7 +12,7 @@ var module = angular.module(
 module.factory(
 	'getAllLabels',
 	[ '$q', '$http', function( $q, $http ) {
-		var getAllLabels = function() {
+		return function getAllLabels() {
 			var url = '/api/labels';
 			var labelsPromise = $http( {
 				method: 'GET',
@@ -30,7 +30,6 @@ module.factory(
 				} );
 			return deferred.promise;
 		};
-		return getAllLabels;
 	} ] );
 
 module.factory(
@@ -38,12 +37,12 @@ module.factory(
 	[ 'makeBaseLabels', function( makeBaseLabels ) {
 		var labellists = makeBaseLabels().all;
 		var labelMapping = {};
-		for ( var key in labellists ) {
+		Object.keys( labellists ).forEach( key => {
 			for ( var i = 0; i < labellists[ key ].length; i ++ ) {
 				var label = labellists[ key ][ i ];
 				labelMapping[ label ] = key;
 			}
-		}
+		} );
 		return labelMapping;
 	} ] );
 
@@ -73,11 +72,10 @@ module.factory(
 					matchingLabels[ retrievedLabels[ index ] ] = true;
 				}
 			}
-			var comparison = {
+			return {
 				'matching': matchingLabels,
 				'missing': missingLabels,
 			};
-			return comparison;
 		};
 
 		var Search = itemFactory( 'search' );
@@ -87,9 +85,7 @@ module.factory(
 			}
 		};
 		Search.prototype.updateFromData = function( data ) {
-			for ( var key in data ) {
-				this[ key ] = data[ key ];
-			}
+			Object.assign( this, data );
 			if ( this.created ) {
 				this.created = new Date( this.created );
 			}
@@ -98,10 +94,10 @@ module.factory(
 			}
 		};
 		Search.prototype.isProfile = function( user ) {
-			var isProfile = (
-			( user.community_partner_profile_search.id === this.id ) ||
-			( user.educator_profile_search.id === this.id ) );
-			return isProfile;
+			return [
+				user.community_partner_profile_search.id,
+				user.educator_profile_search.id,
+			].includes( this.id );
 		};
 		Search.getResults = function( searchId, page ) {
 			var deferred = $q.defer();

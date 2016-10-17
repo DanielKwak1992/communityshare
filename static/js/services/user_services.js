@@ -174,8 +174,7 @@ module.factory(
 				'searcher_user_id': this.id,
 				'active': true,
 			};
-			var searchesPromise = Search.get_many( searchParams );
-			return searchesPromise;
+			return Search.get_many( searchParams );
 		};
 
 		UserBase.prototype.getRecentConversations = function() {
@@ -185,9 +184,7 @@ module.factory(
 				user_id: this.id,
 				'messages.date_created.greaterthan': oneMonthAgo,
 			};
-			var conversationsPromise = Conversation.get_many(
-				conversationParams, true );
-			return conversationsPromise;
+			return Conversation.get_many( conversationParams, true );
 		};
 
 		UserBase.prototype.getUpcomingEvents = function() {
@@ -197,8 +194,7 @@ module.factory(
 				user_id: SessionBase.activeUser.id,
 				'datetime_start.greaterthan': today,
 			};
-			var eventsPromise = Evnt.get_many( params );
-			return eventsPromise;
+			return Evnt.get_many( params );
 		};
 
 		UserBase.prototype.updateUnviewedConversations = function() {
@@ -229,15 +225,14 @@ module.factory(
 module.factory(
 	'Institution',
 	[ 'itemFactory', function( itemFactory ) {
-		var Institution = itemFactory( 'institution' );
-		return Institution;
+		return itemFactory( 'institution' );
 	} ] );
 
 // A function that bring up a modal to send a message to someone.
 module.factory(
 	'startConversation',
 	[ '$modal', '$location', 'Conversation', 'Messages', function( $modal, $location, Conversation, Messages ) {
-		var startConversation = function( thisUser, otherUser, search, directToConversation ) {
+		return function startConversation( thisUser, otherUser, search, directToConversation ) {
 			var userId = otherUser.id;
 			var searchId;
 			if ( search ) {
@@ -301,6 +296,5 @@ module.factory(
 				}
 			);
 		};
-		return startConversation;
 	} ] );
 
