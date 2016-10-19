@@ -2,13 +2,13 @@ import logging
 
 from http import HTTPStatus
 
-from flask import Flask, send_from_directory, render_template
+from flask import Flask, send_from_directory, render_template, jsonify
 from flask_cors import CORS
 from flask.ext.compress import Compress
 from flask_webpack import Webpack
 
 from community_share import config, store, flask_sslify
-from community_share.app_exceptions import BadRequest
+from community_share.app_exceptions import BadRequest, Forbidden, NotFound, NotAuthorized
 from community_share.routes.user_routes import register_user_routes
 from community_share.routes.search_routes import register_search_routes
 from community_share.routes.conversation_routes import register_conversation_routes
@@ -33,6 +33,18 @@ def ReverseProxied(app):
 
     return add_header
 
+
+# Converts an exception into a JSON blob:
+#
+# error -> { "message": str(error) }
+#
+# Our client expects this format to show error messages. If we remove that dependency, we can avoid jsonifying these errors.
+def jsonify_error_for_code(code):
+    def jsonify_error(error):
+        response = jsonify({ "message": str(error) })
+        response.status_code = code
+        return response
+    return jsonify_error
 
 def make_app():
     cors = CORS(origins=[
@@ -74,6 +86,10 @@ def make_app():
     @app.errorhandler(BadRequest)
     def handle_bad_request(error):
         return str(error), HTTPStatus.BAD_REQUEST
+
+    app.errorhandler(Forbidden)(jsonify_error_for_code(HTTPStatus.FORBIDDEN))
+    app.errorhandler(NotAuthorized)(jsonify_error_for_code(HTTPStatus.UNAUTHORIZED))
+    app.errorhandler(NotFound)(jsonify_error_for_code(HTTPStatus.NOT_FOUND))
 
     @app.route('/static/build/<path:filename>')
     def build_static(filename):
