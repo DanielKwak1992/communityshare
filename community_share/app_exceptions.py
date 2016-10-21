@@ -23,3 +23,8 @@ class Forbidden(Exception):
 class NotFound(Exception):
     def __init__(self, message='Not found'):
         super().__init__(message)
+
+
+class ServerError(Exception):
+    def __init__(self, message='Server error'):
+        super().__init__(message)

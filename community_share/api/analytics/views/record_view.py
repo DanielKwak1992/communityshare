@@ -3,9 +3,9 @@ from http import HTTPStatus
 from flask import request
 
 from community_share import with_store
+from community_share.app_exceptions import BadRequest
 from community_share.flask_helpers import needs_auth
 from community_share.models.analytics import PageView
-from community_share.routes.base_routes import make_bad_request_response
 
 
 @needs_auth()
@@ -13,7 +13,7 @@ def endpoint(requester):
     data = request.get_json()
 
     if data is None:
-        return make_bad_request_response('Please provide JSON payload for tracking')
+        raise BadRequest('Please provide JSON payload for tracking')
 
     next_path = data.get('next_path', '')[:255]
     prev_path = data.get('prev_path', '')[:255]
@@ -21,7 +21,7 @@ def endpoint(requester):
     if record_view(requester.id, next_path, prev_path):
         return '', HTTPStatus.NO_CONTENT
 
-    return make_bad_request_response('Please provide non-empty `next_path` and `prev_path` to track')
+    raise BadRequest('Please provide non-empty `next_path` and `prev_path` to track')
 
 
 @with_store

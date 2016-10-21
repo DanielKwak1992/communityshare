@@ -2,8 +2,8 @@ from functools import wraps
 
 from flask import request
 
+from community_share.app_exceptions import Unauthorized
 from community_share.authorization import get_requesting_user
-from community_share.routes import base_routes
 
 
 def api_path(path, query_args={}):
@@ -28,10 +28,10 @@ def needs_auth(auth_level='user'):
             user = kwargs.pop('requester', get_requesting_user())
 
             if user is None:
-                return base_routes.make_not_authorized_response()
+                raise Unauthorized()
 
             if 'admin' == auth_level and not user.is_administrator:
-                return base_routes.make_not_authorized_response()
+                raise Unauthorized()
 
             return f(*args, requester=user, **kwargs)
 

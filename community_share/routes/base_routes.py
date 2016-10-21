@@ -13,51 +13,12 @@ from community_share.authorization import get_requesting_user
 from community_share.models.base import ValidationException
 
 
-def make_not_authorized_response():
-    response_data = {'message': 'Authorization failed'}
-    response = jsonify(response_data)
-    response.status_code = HTTPStatus.UNAUTHORIZED
-    return response
-
-
-def make_forbidden_response():
-    response_data = {'message': 'Forbidden'}
-    response = jsonify(response_data)
-    response.status_code = StatusCodes.FORBIDDEN
-    return response
-
-
-def make_not_found_response():
-    response_data = {'message': 'Not found'}
-    response = jsonify(response_data)
-    response.status_code = StatusCodes.NOT_FOUND
-    return response
-
-
-def make_bad_request_response(message=None):
-    if message is None:
-        message = 'Bad request'
-    response_data = {'message': message}
-    response = jsonify(response_data)
-    response.status_code = HTTPStatus.BAD_REQUEST
-    return response
-
-
 def make_OK_response(message=None):
     if message is None:
         message = 'OK'
     response_data = {'message': message}
     response = jsonify(response_data)
     response.status_code = HTTPStatus.OK
-    return response
-
-
-def make_server_error_response(message=None):
-    if message is None:
-        message = 'Server error'
-    response_data = {'message': message}
-    response = jsonify(response_data)
-    response.status_code = StatusCodes.SERVER_ERROR
     return response
 
 

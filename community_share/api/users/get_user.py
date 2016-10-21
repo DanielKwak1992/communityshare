@@ -3,9 +3,9 @@ from typing import Optional
 from flask import jsonify, request, Response
 
 from community_share import Store, with_store
+from community_share.app_exceptions import NotFound
 from community_share.flask_helpers import needs_auth, serialize
 from community_share.models.user import User
-from community_share.routes.base_routes import make_not_found_response
 from community_share.utils import int_or
 
 
@@ -62,7 +62,7 @@ def endpoint(user_id: int, requester: User) -> Response:
     # in this case, we return a "not found"
     # for both cases
     if user is None:
-        return make_not_found_response()
+        raise NotFound()
 
     return jsonify({
         'user': {
