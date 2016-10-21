@@ -1,5 +1,6 @@
 import logging
 from http import HTTPStatus
+from functools import wraps
 
 from flask import jsonify, request, Blueprint
 
@@ -9,12 +10,6 @@ from community_share import store
 from community_share.utils import StatusCodes, is_integer
 from community_share.authorization import get_requesting_user
 from community_share.models.base import ValidationException
-
-logger = logging.getLogger(__name__)
-
-API_MANY_FORMAT = '/api/{0}'
-API_SINGLE_FORMAT = '/api/{0}/<id>'
-API_PAGINATION_FORMAT = '/api/{0}/<id>/<page>'
 
 
 def make_not_authorized_response():
@@ -93,22 +88,33 @@ def make_single_response(requester, item, include_user=None):
     return response
 
 
-def make_blueprint(Item, resourceName):
+def make_blueprint(base, resource_name):
 
-    api = Blueprint(resourceName, __name__)
+    def inject_base(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            actual_base = kwargs.pop('base', base)
+            return f(*args, base=actual_base, **kwargs)
+        return wrapped
 
-    @api.route(API_MANY_FORMAT.format(resourceName), methods=['GET'])
-    def get_items():
-        logger.debug('get_items - {0}'.format(resourceName))
+    api = Blueprint(resource_name, __name__)
+
+    @api.route(
+        '/api/{0}'.format(resource_name),
+        endpoint='get_many_{}'.format(resource_name),
+        methods=['GET'],
+    )
+    @inject_base
+    def get_items(base, request=request):
         requester = get_requesting_user()
-        if requester is None and not Item.PERMISSIONS.get('all_can_read_many', False):
+        if requester is None and not base.PERMISSIONS.get('all_can_read_many', False):
             response = make_not_authorized_response()
         else:
             if requester is None or not requester.is_administrator:
-                if (Item.PERMISSIONS.get('standard_can_read_many', False) or
-                    Item.PERMISSIONS.get('all_can_read_many', False)):
+                if (base.PERMISSIONS.get('standard_can_read_many', False) or
+                    base.PERMISSIONS.get('all_can_read_many', False)):
                     try:
-                        query = Item.args_to_query(request.args, requester)
+                        query = base.args_to_query(request.args, requester)
                         if query is None:
                             response = make_forbidden_response()
                         else:
@@ -121,7 +127,7 @@ def make_blueprint(Item, resourceName):
                     response = make_forbidden_response()
             else:
                 try:
-                    query = Item.args_to_query(request.args, requester)
+                    query = base.args_to_query(request.args, requester)
                     items = query.all()
                     response = make_many_response(requester, items)
                 except ValueError as e:
@@ -129,45 +135,51 @@ def make_blueprint(Item, resourceName):
                     response = make_bad_request_response(e.args[0])
         return response
 
-    @api.route(API_SINGLE_FORMAT.format(resourceName), methods=['GET'])
-    def get_item(id):
+    @api.route(
+        '/api/{0}/<id>'.format(resource_name),
+        endpoint='get_{}'.format(resource_name),
+        methods=['GET'],
+    )
+    @inject_base
+    def get_item(id, base):
         requester = get_requesting_user()
         if requester is None:
             response = make_not_authorized_response()
         elif not is_integer(id):
-            response = make_bad_request_user()
+            response = make_bad_request_response()
         else:
-            item = store.session.query(Item).filter_by(id=id, active=True).first()
+            item = store.session.query(base).filter_by(id=id, active=True).first()
             if item is None:
                 response = make_not_found_response()
             else:
                 response = make_single_response(requester, item)
         return response
 
-    @api.route(API_MANY_FORMAT.format(resourceName), methods=['POST'])
-    def add_item():
+    @api.route(
+        '/api/{0}'.format(resource_name),
+        endpoint='add_{}'.format(resource_name),
+        methods=['POST'],
+    )
+    @inject_base
+    def add_item(base, request=request):
         requester = get_requesting_user()
-        logger.debug('add_item: requester = {0}'.format(requester))
         data = request.json
-        if not Item.has_add_rights(data, requester):
+        if not base.has_add_rights(data, requester):
             if requester is None:
-                logger.debug('not authorized')
                 response = make_not_authorized_response()
             else:
-                logger.debug('forbidden')
                 response = make_forbidden_response()
         else:
-            logger.debug('data send is {0}'.format(data))
             try:
-                item = Item.admin_deserialize_add(data)
+                item = base.admin_deserialize_add(data)
                 store.session.add(item)
                 store.session.commit()
-                refreshed_item = store.session.query(Item).filter_by(id=item.id).first()
+                refreshed_item = store.session.query(base).filter_by(id=item.id).first()
                 refreshed_item.on_add(requester)
                 # commit again in case on_add changed it.
                 store.session.commit()
                 # and refresh again to update relationships
-                refreshed_item = store.session.query(Item).filter_by(id=item.id).first()
+                refreshed_item = store.session.query(base).filter_by(id=item.id).first()
                 response = make_single_response(requester, refreshed_item, include_user=requester)
             except ValidationException as e:
                 response = make_bad_request_response(str(e))
@@ -179,8 +191,13 @@ def make_blueprint(Item, resourceName):
                 response = make_bad_request_response(message)
         return response
 
-    @api.route(API_SINGLE_FORMAT.format(resourceName), methods=['PATCH', 'PUT'])
-    def edit_item(id):
+    @api.route(
+        '/api/{0}/<id>'.format(resource_name),
+        endpoint='edit_{}'.format(resource_name),
+        methods=['PATCH', 'PUT'],
+    )
+    @inject_base
+    def edit_item(id, base, request=request):
         requester = get_requesting_user()
         if requester is None:
             response = make_not_authorized_response()
@@ -196,7 +213,7 @@ def make_blueprint(Item, resourceName):
                 if id is None:
                     item = None
                 else:
-                    item = store.session.query(Item).filter_by(id=id).first()
+                    item = store.session.query(base).filter_by(id=id).first()
                 if item is None:
                     response = make_not_found_response()
                 else:
@@ -204,7 +221,6 @@ def make_blueprint(Item, resourceName):
                         try:
                             item.admin_deserialize_update(data)
                             store.session.add(item)
-                            logger.debug('calling on_edit on {0}'.format(item))
                             item.on_edit(requester, unchanged=not store.session.dirty)
                             store.session.commit()
                             response = make_single_response(requester, item)
@@ -214,8 +230,13 @@ def make_blueprint(Item, resourceName):
                         response = make_forbidden_response()
         return response
 
-    @api.route(API_SINGLE_FORMAT.format(resourceName), methods=['DELETE'])
-    def delete_item(id):
+    @api.route(
+        '/api/{0}/<id>'.format(resource_name),
+        endpoint='delete_{}'.format(resource_name),
+        methods=['DELETE'],
+    )
+    @inject_base
+    def delete_item(id, base):
         requester = get_requesting_user()
         if requester is None:
             response = make_not_authorized_response()
@@ -223,7 +244,7 @@ def make_blueprint(Item, resourceName):
             response = make_bad_request_response()
         else:
             id = int(id)
-            item = store.session.query(Item).filter_by(id=id).first()
+            item = store.session.query(base).filter_by(id=id).first()
             if item is None:
                 response = make_not_found_response()
             else:
